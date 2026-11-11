@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#06090a" />
+  <meta name="description" content="AETHON AR·24 一级方程式赛车工程剖视台——完整装配、剖视、半剖与一键爆炸拆解。" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56 56'%3E%3Crect width='56' height='56' fill='%23050a0b'/%3E%3Cpath d='M7 45 25.5 10h5L49 45h-9.6l-3.4-7.4H20.6L17.2 45H7Z' fill='none' stroke='%23f0ece2' stroke-width='1.4'/%3E%3Cpath d='M24 29.4h8.2L28.1 19 24 29.4Z' fill='%23f0ece2'/%3E%3Cpath d='M38.4 9.5 29 46' stroke='%23ff4524' stroke-width='2'/%3E%3C/svg%3E" />
+  <title>AETHON AR·24 — Technical Cutaway</title>
+  <style>/*__INLINE_CSS__*/</style>
+</head>
+<body>
+  <div id="app">
+    <canvas id="scene" aria-label="AETHON AR·24 三维赛车模型，可旋转、缩放并切换剖视模式"></canvas>
+
+    <div class="fx-vignette" aria-hidden="true"></div>
+    <div class="fx-grain" aria-hidden="true"></div>
+    <div class="fx-scanline" aria-hidden="true"></div>
+
+    <div class="labels" id="labels" aria-hidden="true">
+      <svg class="leader-layer" id="leaderLayer" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+
+    <div class="hud" id="hud">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 56 56" fill="none">
+              <path d="M7 45 25.5 10h5L49 45h-9.6l-3.4-7.4H20.6L17.2 45H7Z" stroke="currentColor" stroke-width="1.4"/>
+              <path d="M24 29.4h8.2L28.1 19 24 29.4Z" fill="currentColor"/>
+              <path d="M38.4 9.5 29 46" stroke="#ff4524" stroke-width="2"/>
+            </svg>
+          </div>
+          <div class="brand-copy">
+            <div class="eyebrow">
+              <span>AETHON MOTORSPORT</span>
+              <i></i>
+              <span>RACE OPERATIONS</span>
+            </div>
+            <div class="title-line">
+              <h1>AR<span class="dot">·</span>24</h1>
+              <div class="title-tag">
+                <b>F1</b>
+                <span>TECHNICAL<br>CUTAWAY</span>
+              </div>
+            </div>
+            <div class="subline">
+              一级方程式赛车 · 工程剖视台
+              <span>/</span>
+              GARAGE 01
+            </div>
+          </div>
+        </div>
+
+        <div class="top-right">
+          <div class="session">
+            <div class="live"><i></i> GARAGE LIVE <span>BAY 01</span></div>
+            <div class="metrics">
+              <div><span>LOCAL</span><b id="clock">22:01</b></div>
+              <div><span>AMBIENT</span><b>21.4°C</b></div>
+              <div><span>POWER UNIT</span><b>68°C</b></div>
+            </div>
+          </div>
+          <div class="top-actions">
+            <button class="icon-btn" id="soundBtn" type="button" aria-label="开启环境音" title="环境音 / M">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path class="sound-waves" d="M14 8.5a5 5 0 0 1 0 7M17 5.5a9 9 0 0 1 0 13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+                <path d="M4 9.5h4l5-4.5v14l-5-4.5H4v-5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+                <path class="mute-slash" d="m4 19 15-15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+              </svg>
+            </button>
+            <button class="icon-btn" id="helpBtn" type="button" aria-label="操作说明" title="操作说明 / ?">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="12" cy="12" r="8.2" stroke="currentColor" stroke-width="1.3"/>
+                <path d="M9.8 9.2a2.4 2.4 0 1 1 3.5 2.1c-.8.5-1.3 1-1.3 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                <circle cx="12" cy="16.7" r=".85" fill="currentColor"/>
+              </svg>
+            </button>
+            <button class="icon-btn" id="fullBtn" type="button" aria-label="全屏" title="全屏 / F">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <aside class="side-index" aria-hidden="true">
+        <div class="side-vertical">AETHON / ADVANCED RACE SYSTEMS</div>
+        <div class="side-cross">
+          <span></span><span></span>
+          <b>+</b>
+        </div>
+        <div class="side-scale">
+          <div class="scale-line"><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="scale-label">0 <span>5.63 M</span></div>
+        </div>
+        <div class="side-view">
+          <span>VIEW</span>
+          <b id="viewCode">EXT / 01</b>
+        </div>
+      </aside>
+
+      <aside class="info-panel" id="infoPanel">
+        <div class="panel-corners" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <div class="panel-top">
+          <span>SYSTEMS OVERVIEW</span>
+          <span id="panelIndex">01 / 04</span>
+        </div>
+        <div class="panel-content" id="panelContent">
+          <div class="mode-tag" id="panelTag"><i></i><span>COMPLETE STATE</span></div>
+          <h2 id="panelTitle">完整装配</h2>
+          <div class="panel-en" id="panelEn">COMPLETE ASSEMBLY</div>
+          <p class="panel-desc" id="panelDesc">在夜间维修库中呈现的一级方程式赛车全貌。碳纤维车身、空气动力学套件与混合动力单元处于比赛装配状态。</p>
+
+          <div class="specs" id="specs">
+            <div><span>OVERALL LENGTH</span><b>5,630 <em>mm</em></b></div>
+            <div><span>DRY WEIGHT</span><b>798 <em>kg</em></b></div>
+            <div><span>POWER UNIT</span><b>1,000 <em>hp</em></b></div>
+            <div><span>DOWNFORCE</span><b>2,400 <em>kg</em></b></div>
+          </div>
+
+          <div class="assembly-manifest" id="assemblyManifest" hidden></div>
+
+          <div class="mass-block">
+            <div class="mass-head">
+              <span>MASS DISTRIBUTION</span>
+              <span id="massValue">44.8 / 55.2</span>
+            </div>
+            <div class="mass-bar"><i class="front" style="width:44.8%"></i><i class="rear" style="width:55.2%"></i></div>
+            <div class="mass-labels"><span>FRONT</span><span>REAR</span></div>
+          </div>
+
+          <div class="panel-foot">
+            <span>CFRP MONOCOQUE · 8-SPEED</span>
+            <span class="ready"><i></i> READY</span>
+          </div>
+        </div>
+      </aside>
+
+      <div class="hint" id="hint">
+        <span class="drag-glyph" aria-hidden="true">
+          <svg viewBox="0 0 28 28" fill="none"><path d="M8 13.5V7.4a1.8 1.8 0 1 1 3.6 0v5.1m0-1.4V4.7a1.8 1.8 0 1 1 3.6 0v5.9m0-.9a1.8 1.8 0 1 1 3.6 0v7.1c0 3.2-2.2 5.2-5.4 5.2-2.4 0-3.9-1.1-5.2-3.3L5.1 14c-.6-1.1.8-2.5 1.8-1.6L8 13.5Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        拖拽环视 <i></i> 滚轮缩放
+      </div>
+
+      <footer class="control-deck" id="controlDeck">
+        <div class="mode-group" role="tablist" aria-label="视图模式">
+          <button class="mode-btn is-active" type="button" data-mode="full" role="tab" aria-selected="true">
+            <span class="idx">01</span>
+            <span class="zh">完整装配</span>
+            <span class="en">FULL CAR</span>
+          </button>
+          <button class="mode-btn" type="button" data-mode="cutaway" role="tab" aria-selected="false">
+            <span class="idx">02</span>
+            <span class="zh">工程剖视</span>
+            <span class="en">CUTAWAY</span>
+          </button>
+          <button class="mode-btn" type="button" data-mode="half" role="tab" aria-selected="false">
+            <span class="idx">03</span>
+            <span class="zh">半剖扫描</span>
+            <span class="en">HALF SECTION</span>
+          </button>
+        </div>
+
+        <button class="explode-btn" id="explodeBtn" type="button" aria-pressed="false">
+          <span class="explode-icon" aria-hidden="true">
+            <svg viewBox="0 0 34 34" fill="none">
+              <path d="M8 22.5 17 27l9-4.5" stroke="currentColor" stroke-width="1.3"/>
+              <path d="M8 16.7 17 21l9-4.3" stroke="currentColor" stroke-width="1.3"/>
+              <path d="M8 11 17 15.3 26 11 17 6.5 8 11Z" stroke="currentColor" stroke-width="1.3"/>
+              <path d="M17 15.3V27" stroke="#ff4524" stroke-width="1.3" stroke-dasharray="1.5 2.4"/>
+            </svg>
+          </span>
+          <span class="explode-copy">
+            <b id="explodeLabel">一键爆炸拆解</b>
+            <small id="explodeSub">EXPLODE ASSEMBLY</small>
+          </span>
+          <kbd>SPACE</kbd>
+        </button>
+
+        <div class="deck-telemetry">
+          <span>DISASSEMBLY</span>
+          <strong id="explodePct">00<span>%</span></strong>
+          <div class="meter"><i id="explodeBar"></i></div>
+        </div>
+      </footer>
+    </div>
+
+    <div class="loader" id="loader">
+      <div class="loader-noise" aria-hidden="true"></div>
+      <div class="loader-top">
+        <div class="loader-brand">
+          <svg viewBox="0 0 56 56" fill="none" aria-hidden="true">
+            <path d="M7 45 25.5 10h5L49 45h-9.6l-3.4-7.4H20.6L17.2 45H7Z" stroke="currentColor" stroke-width="1.2"/>
+            <path d="M24 29.4h8.2L28.1 19 24 29.4Z" fill="currentColor"/>
+            <path d="M38.4 9.5 29 46" stroke="#ff4524" stroke-width="1.8"/>
+          </svg>
+          <div>
+            <b>AETHON</b>
+            <span>MOTORSPORT / HINWIL</span>
+          </div>
+        </div>
+        <div class="loader-code">DOC. AR24-CUT / REV.03</div>
+      </div>
+
+      <svg class="loader-blueprint" viewBox="0 0 900 320" fill="none" aria-hidden="true">
+        <g stroke="rgba(235,239,232,.22)" stroke-width="1">
+          <path d="M95 222h80l50-16 97-7 48-50 58-9 44 52 90 9 80 8 66 26"/>
+          <path d="M225 239c0-31 24-56 54-56s54 25 54 56-24 56-54 56-54-25-54-56Z"/>
+          <path d="M558 239c0-35 27-62 61-62s61 27 61 62-27 61-61 61-61-26-61-61Z"/>
+          <path d="M246 239h-43m445 0h60M280 239a27 27 0 1 0 54 0 27 27 0 1 0-54 0Zm333 0a27 27 0 1 0 54 0 27 27 0 1 0-54 0Z"/>
+          <path d="M462 185v-18h85l14-34h27l23 28v26m-154-2 15-49h67l13 34m-92-40 58-4 21 47m-244-3h44v22m246-21h43v-16" stroke-dasharray="3 5"/>
+          <path d="M145 222v-24h52l12-12h102l25 29M635 228l18-48h43l20 57" stroke-dasharray="2 4"/>
+          <circle cx="279" cy="239" r="8"/>
+          <circle cx="619" cy="239" r="8"/>
+        </g>
+        <g stroke="#ff4524" stroke-width="1.2">
+          <path d="M280 239h115M620 239h-115" stroke-dasharray="2 4"/>
+          <circle cx="450" cy="239" r="3" fill="#ff4524"/>
+        </g>
+      </svg>
+
+      <div class="loader-center">
+        <div class="loader-kicker">F1 / TECHNICAL CUTAWAY / 2024</div>
+        <div class="loader-title">ASSEMBLY<br><em>SEQUENCE</em></div>
+        <div class="loader-progress">
+          <div class="load-track"><i id="loadBar"></i></div>
+          <div class="load-meta">
+            <span id="loadStatus">INITIALISING OPTICAL RIG</span>
+            <span id="loadPct">00</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="loader-bottom">
+        <span>PROCEDURAL GEOMETRY / REALTIME LIGHTING</span>
+        <span>BAY 01 · <b id="loaderClock">22:01</b></span>
+      </div>
+    </div>
+
+    <div class="help-modal" id="helpModal" hidden>
+      <div class="help-scrim" data-help-close></div>
+      <section class="help-panel" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+        <div class="help-head">
+          <span>CONTROL REFERENCE / 操作参考</span>
+          <button type="button" id="helpClose" aria-label="关闭帮助">×</button>
+        </div>
+        <h3 id="helpTitle">INSPECTION PROTOCOL</h3>
+        <p class="help-intro">使用拖拽环视赛车，切换剖视状态以检查内部总成。爆炸拆解会将主要总成沿装配轴线分离。</p>
+        <div class="help-grid">
+          <div><kbd>01</kbd><span>完整装配</span><em>FULL CAR</em></div>
+          <div><kbd>02</kbd><span>工程剖视</span><em>CUTAWAY</em></div>
+          <div><kbd>03</kbd><span>半剖扫描</span><em>HALF SECTION</em></div>
+          <div><kbd>04</kbd><span>爆炸拆解</span><em>EXPLODED</em></div>
+          <div><kbd>SPACE</kbd><span>展开 / 复原</span><em>TOGGLE</em></div>
+          <div><kbd>R</kbd><span>重置机位</span><em>RECENTER</em></div>
+          <div><kbd>H</kbd><span>隐藏界面</span><em>HUD</em></div>
+          <div><kbd>M</kbd><span>环境音</span><em>SOUND</em></div>
+          <div><kbd>F</kbd><span>全屏</span><em>FULLSCREEN</em></div>
+          <div><kbd>ESC</kbd><span>关闭面板</span><em>DISMISS</em></div>
+        </div>
+        <div class="help-note">提示：在剖视与半剖模式下，正视角位于赛车右舷（+X 方向）。</div>
+      </section>
+    </div>
+
+    <div class="hud-hidden-note" id="hudHiddenNote">HUD HIDDEN · PRESS H TO RESTORE</div>
+    <div class="toast" id="toast" role="status"></div>
+    <div class="error-panel" id="error" hidden>
+      <span>RENDER SYSTEM FAULT</span>
+      <p id="errorText"></p>
+    </div>
+  </div>
+
+  <noscript><div class="noscript">需要启用 JavaScript 以运行三维剖视系统。</div></noscript>
+  <script>/*__INLINE_JS__*/</script>
+</body>
+</html>

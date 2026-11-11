@@ -1,0 +1,22 @@
+{
+  "name": "aethon-night-shift",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "AETHON F1 2022 — NIGHT SHIFT. A real-time cinematic launch film from pit garage to dawn circuit.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "preview": "node scripts/serve.mjs",
+    "start": "node scripts/serve.mjs",
+    "capture": "node scripts/capture.mjs",
+    "verify": "node scripts/verify.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "playwright-core": "^1.65.0",
+    "three": "^0.186.1"
+  }
+}
