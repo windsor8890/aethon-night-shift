@@ -1,9 +1,9 @@
 {
-  "name": "aethon-night-shift",
-  "version": "1.0.0",
+  "name": "ferrari-f1-75-showroom",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
-  "description": "AETHON F1 2022 — NIGHT SHIFT. A real-time cinematic launch film from pit garage to dawn circuit.",
+  "description": "AETHON × Ferrari F1-75 — a static real-time technical showroom for the 2022 Ferrari Formula 1 car.",
   "engines": {
     "node": ">=20"
   },

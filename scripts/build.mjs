@@ -27,5 +27,5 @@ await writeFile(path.join(outdir, 'index.html'), html, 'utf8');
 
 // The real F1 GLB stays as an external, cacheable asset.
 await cp(path.join(root, 'assets'), path.join(outdir, 'assets'), { recursive: true, force: true });
-const glb = await stat(path.join(outdir, 'assets', 'f1-2022.glb'));
-console.log(`built dist/index.html  ${(Buffer.byteLength(html) / 1024 / 1024).toFixed(2)} MB  +  F1 asset ${(glb.size / 1024 / 1024).toFixed(1)} MB`);
+const glb = await stat(path.join(outdir, 'assets', 'ferrari-f1-75.glb'));
+console.log(`built dist/index.html  ${(Buffer.byteLength(html) / 1024 / 1024).toFixed(2)} MB  +  Ferrari asset ${(glb.size / 1024 / 1024).toFixed(1)} MB`);

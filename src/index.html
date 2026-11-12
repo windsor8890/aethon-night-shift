@@ -3,181 +3,121 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#05090b" />
-  <meta name="description" content="AETHON F1 2022 — Night Shift. A real-time cinematic launch film: from the pit garage to the dawn circuit." />
-  <title>AETHON · NIGHT SHIFT / F1 2022 Launch Film</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%2305090b'/%3E%3Cpath d='M13 44 26 17h11L24 44zm17 0 13-27h9L39 44z' fill='%23e33a22'/%3E%3C/svg%3E" />
+  <meta name="theme-color" content="#070a0c" />
+  <meta name="description" content="AETHON × Ferrari F1-75 — a static technical showcase of the 2022 Ferrari Formula 1 car." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23070a0c'/%3E%3Cpath d='M12 44 28 20h8L20 44zm16 0 16-24h8L36 44z' fill='%23c21b22'/%3E%3C/svg%3E" />
+  <title>FERRARI F1-75 — AETHON Technical Showroom</title>
   <style>/*__INLINE_CSS__*/</style>
 </head>
 <body>
-  <div id="app" class="app is-loading">
-    <div id="stage" aria-hidden="true"></div>
+  <div id="app">
+    <canvas id="stage" aria-label="Ferrari F1-75 3D showroom"></canvas>
+    <div class="vignette" aria-hidden="true"></div>
+    <div class="grain" aria-hidden="true"></div>
 
-    <div class="letterbox" aria-hidden="true">
-      <div class="lb-bar lb-top"><span class="lb-mark">AETHON <em>F1</em> — NIGHT SHIFT</span><span class="lb-meta">F1 2022 / LAUNCH FILM</span></div>
-      <div class="lb-bar lb-bottom"><span class="lb-meta">AETHON MOTORSPORT · RACE OPERATIONS</span><span class="lb-mark">PIT EXIT / DAWN</span></div>
+    <div id="loader" class="loader">
+      <div class="loader-inner">
+        <div class="loader-mark"><span>A</span><i>///</i></div>
+        <div class="loader-title">FERRARI <em>F1-75</em></div>
+        <div class="loader-rule"><i id="loaderBar"></i></div>
+        <div class="loader-meta">
+          <span>AETHON MOTORSPORT / MARANELLO CUSTOMER PROGRAM</span>
+          <span id="loaderPct">00</span>
+        </div>
+      </div>
     </div>
 
-    <div class="ambient-bars" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
-
-    <header class="topbar" id="topbar">
+    <header class="topbar">
       <div class="brand">
-        <svg class="brand-mark" viewBox="0 0 62 24" aria-hidden="true"><path d="M2 22 15 2h11L13 22H2Zm18 0L33 2h10L30 22H20Zm18 0L51 2h9L47 22h-9Z" fill="currentColor"/></svg>
-        <div class="brand-type"><b>AETHON</b><span>MOTORSPORT / RACE OPERATIONS</span></div>
+        <span class="brand-mark">///</span>
+        <span class="brand-type">AETHON<small>MOTORSPORT / RACE OPERATIONS</small></span>
       </div>
-      <div class="topbar-center">F1 2022 <i>/</i> NIGHT SHIFT</div>
-      <div class="topbar-actions">
-        <button class="text-btn" id="soundToggle" type="button" aria-label="声音开关"><span class="dot on" id="soundDot"></span><span id="soundLabel">SOUND ON</span></button>
-        <button class="text-btn" id="fullscreenBtn" type="button">FULLSCREEN</button>
-        <button class="icon-btn" id="creditsBtn" type="button" aria-label="关于与致谢">i</button>
+      <div class="top-meta">
+        <span>FERRARI F1-75</span>
+        <span class="slash">/</span>
+        <span>2022 / TECHNICAL SHOWROOM</span>
+      </div>
+      <div class="top-actions">
+        <button class="action" id="resetView" type="button">RESET VIEW <kbd>R</kbd></button>
+        <button class="action" id="creditsBtn" type="button">CREDITS <kbd>I</kbd></button>
+        <button class="action icon" id="fullscreenBtn" type="button" aria-label="Fullscreen">↗</button>
       </div>
     </header>
 
-    <section class="landing" id="landing" aria-label="影片信息">
-      <div class="landing-scrim"></div>
-      <div class="landing-copy">
-        <p class="eyebrow"><span class="red-slash"></span> AETHON MOTORSPORT <span class="sep">/</span> FILM 001</p>
-        <h1 class="hero-title">
-          <span class="title-line">NIGHT</span>
-          <span class="title-line title-line-serif">SHIFT<span class="title-dot">.</span></span>
-        </h1>
-        <div class="zh-title">发车时刻</div>
-        <p class="lede">引擎在黑暗里醒来。灯光扫过碳纤维，维修库的门缓缓升起——<br class="wide" />在晨光与沥青交界的那一刻，赛车向前，场景化作赛道。</p>
-        <div class="landing-actions">
-          <button class="play-btn" id="playBtn" type="button">
-            <span class="play-circle"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.2 19 12 8 18.8V5.2Z" fill="currentColor"/></svg></span>
-            <span class="play-copy"><b>PLAY LAUNCH FILM</b><small>播放发车电影 · 00:35</small></span>
-            <span class="play-edge"></span>
-          </button>
-          <button class="ghost-btn" id="freeLookBtn" type="button"><span>FREE LOOK</span><small>自由环视</small></button>
-        </div>
-        <div class="landing-foot">
-          <span>REAL-TIME 3D</span><span>F1 2022</span><span>STEREO ENGINE AUDIO</span>
-          <button class="credits-inline" id="creditsBtn2" type="button">CREDITS +</button>
-        </div>
+    <section class="intro" aria-live="polite">
+      <div class="eyebrow"><span class="red-dot"></span> AETHON / MARANELLO CUSTOMER PROGRAM <span class="eyebrow-rule"></span> 01—04</div>
+      <div class="mode-kicker" id="modeKicker">CHASSIS 066 / ROSSO CORSA</div>
+      <h1 id="modeTitle">FULL<br />ASSEMBLY</h1>
+      <div class="cn-title" id="modeCn">整车展示</div>
+      <p class="mode-desc" id="modeDesc">2022 赛季 Ferrari F1-75 的真实外形，完整呈现 18 英寸轮组、地面效应底板与 Rosso Corsa 单体壳。</p>
+      <div class="spec-grid" id="specGrid">
+        <div><span>CHASSIS</span><b>CFRP MONOCOQUE</b></div>
+        <div><span>POWER UNIT</span><b>1.6L V6 TURBO HYBRID</b></div>
+        <div><span>GEARBOX</span><b>8-SPEED</b></div>
+        <div><span>WHEELBASE</span><b>3.60 M</b></div>
       </div>
-
-      <aside class="film-index" aria-label="影片章节">
-        <p class="index-label">CHAPTER INDEX</p>
-        <ol>
-          <li><span>01</span><b>NIGHT SHIFT</b><em>车库 / 沉睡</em></li>
-          <li><span>02</span><b>THE MACHINE</b><em>机械 / 细节</em></li>
-          <li><span>03</span><b>IGNITION</b><em>点火 / 心跳</em></li>
-          <li><span>04</span><b>PIT EXIT</b><em>开门 / 穿越</em></li>
-          <li><span>05</span><b>FULL THROTTLE</b><em>赛道 / 晨光</em></li>
-        </ol>
-        <div class="index-tech">
-          <div><small>POWER UNIT</small><b>1.6L V6 TURBO</b></div>
-          <div><small>CHASSIS</small><b>F1 2022 SPEC</b></div>
-          <div><small>LOCATION</small><b>BAY 01 / AETHON</b></div>
-        </div>
-      </aside>
-
-      <div class="landing-side-meta" aria-hidden="true">
-        <span>A CINEMATIC LAUNCH SEQUENCE</span>
-        <span class="side-line"></span>
-        <span>35 SECONDS / ONE TAKE TO THE TRACK</span>
+      <div class="intro-foot">
+        <span class="live-dot"></span>
+        <span id="modeState">STATIC SHOWROOM / BAY 01</span>
+        <span class="intro-line"></span>
+        <span>REAL F1-75 GEOMETRY</span>
       </div>
     </section>
 
-    <div class="film-hud" id="filmHud" aria-hidden="true">
-      <div class="film-topline">
-        <div class="film-chapter"><span id="filmChapterNum">01</span><b id="filmChapterName">NIGHT SHIFT</b><em id="filmChapterCn">车库 / 沉睡</em></div>
-        <div class="film-timecode"><span>REC</span><b id="filmTime">00:00</b><i>/ 00:35</i></div>
-        <div class="film-utility">
-          <button class="film-sound" id="filmSound" type="button">SOUND ON</button>
-          <button class="skip-btn" id="skipBtn" type="button">SKIP FILM <span>→</span></button>
-        </div>
+    <aside class="aside-panel" id="asidePanel" aria-hidden="true">
+      <div class="aside-head">
+        <span id="asideKicker">SYSTEMS OVERVIEW</span>
+        <span id="asideCount">04</span>
       </div>
+      <ol id="asideList"></ol>
+      <div class="aside-foot"><span class="live-dot"></span> <span id="asideFoot">CUT PLANE X +0.08 M</span></div>
+    </aside>
 
-      <div class="chapter-card" id="chapterCard" aria-hidden="true">
-        <span class="chapter-num" id="chapterCardNum">01</span>
-        <div><b id="chapterCardTitle">NIGHT SHIFT</b><em id="chapterCardCn">发车之前，世界只剩引擎的呼吸。</em></div>
-      </div>
+    <div class="pins" id="pins" aria-hidden="true"></div>
 
-      <div class="cinema-title" id="cinemaTitle" aria-hidden="true">
-        <span>AETHON MOTORSPORT PRESENTS</span>
-        <b>NIGHT<br /><i>SHIFT</i></b>
-        <em>F1 2022 / A CINEMATIC LAUNCH SEQUENCE</em>
-      </div>
+    <nav class="mode-rail" aria-label="Showcase modes">
+      <button class="mode-btn active" type="button" data-mode="full">
+        <span class="num">01</span><span class="mode-name">FULL ASSEMBLY</span><span class="mode-cn">整车</span>
+      </button>
+      <button class="mode-btn" type="button" data-mode="cutaway">
+        <span class="num">02</span><span class="mode-name">CUTAWAY</span><span class="mode-cn">剖视</span>
+      </button>
+      <button class="mode-btn" type="button" data-mode="systems">
+        <span class="num">03</span><span class="mode-name">SYSTEMS</span><span class="mode-cn">透视</span>
+      </button>
+      <button class="mode-btn" type="button" data-mode="detail">
+        <span class="num">04</span><span class="mode-name">DETAIL</span><span class="mode-cn">细节</span>
+      </button>
+    </nav>
 
-      <div class="film-bottom">
-        <div class="film-progress">
-          <div class="progress-meta"><span id="progressChapter">01 / NIGHT SHIFT</span><span id="progressTime">00:00 — 00:35</span></div>
-          <div class="progress-rail"><div class="progress-fill" id="progressFill"></div><div class="progress-head" id="progressHead"></div><div class="progress-marks" id="progressMarks"></div></div>
-        </div>
-        <div class="film-telemetry" id="filmTelemetry">
-          <div class="telem-speed"><small>SPEED</small><b id="speedValue">000</b><span>KM/H</span></div>
-          <div class="telem-gear"><small>GEAR</small><b id="gearValue">N</b></div>
-          <div class="telem-throttle"><small>THROTTLE</small><span><i id="throttleFill"></i></span></div>
-          <div class="telem-mode"><span class="live-dot"></span><b id="telemMode">GARAGE / IDLE</b></div>
-        </div>
-      </div>
+    <div class="footer">
+      <span>DRAG TO ORBIT</span><span>SCROLL TO ZOOM</span><span>1—4 MODES</span>
+      <span class="footer-right">AETHON F1 DIVISION <i></i> 2022</span>
     </div>
 
-    <div class="fade-black" id="fadeBlack" aria-hidden="true"></div>
-    <div class="cut-flash" id="cutFlash" aria-hidden="true"></div>
+    <div class="ghost-word" aria-hidden="true">F1-75</div>
 
-    <section class="endcard" id="endCard" aria-hidden="true">
-      <div class="endcard-inner">
-        <p class="end-eyebrow">AETHON MOTORSPORT / F1 2022</p>
-        <h2>LAUNCH<br /><i>COMPLETE</i></h2>
-        <p class="end-cn">发车完成</p>
-        <p class="end-copy">从维修库到赛道，一镜穿越。<br />引擎仍在远处回响。</p>
-        <div class="end-actions">
-          <button class="play-btn small" id="replayBtn" type="button"><span class="play-circle"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.2 19 12 8 18.8V5.2Z" fill="currentColor"/></svg></span><span class="play-copy"><b>REPLAY FILM</b><small>重播发车电影</small></span></button>
-          <button class="ghost-btn light" id="exploreBtn" type="button"><span>FREE LOOK</span><small>自由环视</small></button>
-          <button class="ghost-btn light" id="garageBtn" type="button"><span>BACK TO GARAGE</span><small>返回维修库</small></button>
+    <div class="credits" id="creditsModal" role="dialog" aria-modal="true" aria-labelledby="creditsTitle">
+      <div class="credits-card">
+        <button class="credits-close" id="creditsClose" type="button" aria-label="Close">×</button>
+        <div class="credits-eyebrow">AETHON / F1-75 / SOURCES</div>
+        <h2 id="creditsTitle">CREDITS<br /><em>&amp; NOTES</em></h2>
+        <div class="credits-body">
+          <p><strong>Ferrari F1-75 (2022) 3D model</strong><br />by ZionCaesar &amp; Sketcher, licensed <strong>CC BY 4.0</strong>, via FetchCFD (project by Alges Mann).</p>
+          <p>The geometry has been rescaled, re-wheeled, re-painted in Rosso Corsa, and fitted with a procedural 1.6L V6 hybrid power unit, energy store, radiators and cockpit cell. The source file carried no usable texture or colour stream.</p>
+          <p><strong>Independent fan showcase.</strong> Not affiliated with Ferrari, Formula 1, the FIA or any team. FERRARI, F1-75 and related marks belong to their respective owners. AETHON is a fictional motorsport identity.</p>
+          <p class="links">
+            <a href="https://fetchcfd.com/view-project/3603" target="_blank" rel="noreferrer">MODEL SOURCE ↗</a>
+            <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0 ↗</a>
+          </p>
         </div>
-        <p class="end-credit">F1 2022 CAR MODEL BY THEODEVF1 · CC BY 4.0</p>
-      </div>
-    </section>
-
-    <div class="explore-hud" id="exploreHud" aria-hidden="true">
-      <div class="explore-left"><p>FREE LOOK</p><b>自由环视</b><span>拖拽环绕 / 滚轮缩放</span></div>
-      <div class="explore-actions">
-        <button class="text-btn" id="exploreReplay" type="button">REPLAY FILM</button>
-        <button class="text-btn" id="exploreGarage" type="button">BACK TO GARAGE</button>
-      </div>
-    </div>
-
-    <div class="credits-modal" id="creditsModal" aria-hidden="true">
-      <div class="credits-panel" role="dialog" aria-modal="true" aria-labelledby="creditsTitle">
-        <button class="modal-close" id="closeCredits" type="button" aria-label="关闭">×</button>
-        <p class="eyebrow"><span class="red-slash"></span> ABOUT / CREDITS</p>
-        <h3 id="creditsTitle">真实的机械，虚构的车队。</h3>
-        <p>AETHON 是一支虚构的 F1 车队，本项目为非商业概念短片。赛车基于 2022 年 F1 技术规则的真实比例与结构重建。</p>
-        <div class="credit-list">
-          <div><span>F1 2022 3D MODEL</span><b>TheoDevF1</b><em>Reupload: Hydra_Junie · CC BY 4.0 · FetchCFD</em></div>
-          <div><span>REAL-TIME DIRECTION</span><b>AETHON / DSH</b><em>Three.js · WebGL 2 · procedural FX</em></div>
-          <div><span>SOUND</span><b>SYNTHESIZED ENGINE AUDIO</b><em>Web Audio API · procedural V6</em></div>
-        </div>
-        <div class="credit-links">
-          <a href="https://sketchfab.com/3d-models/f1-2022-generic-v3-reuploaded-from-theodevf1-55c119e7096a4322bc375c9b4f5a162d" target="_blank" rel="noopener">MODEL SOURCE ↗</a>
-          <a href="https://fetchcfd.com/view-project/2898" target="_blank" rel="noopener">FETCHCFD ↗</a>
-          <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0 ↗</a>
-        </div>
-        <p class="disclaimer">Not affiliated with Formula 1, the FIA, or any Formula One team. All team names, marks and liveries shown are fictional; the F1 marks belong to their respective owners.</p>
+        <div class="credits-foot"><span>STATIC / REAL-TIME</span><span>BUILD 02</span></div>
       </div>
     </div>
 
     <div class="toast" id="toast" role="status"></div>
-
-    <div class="loader" id="loader">
-      <div class="loader-grid" aria-hidden="true"></div>
-      <div class="loader-top"><span>AETHON</span><span>F1 2022 / LAUNCH FILM</span></div>
-      <div class="loader-core">
-        <p class="loader-kicker">RACE OPERATIONS / BAY 01</p>
-        <h2>NIGHT<br /><i>SHIFT</i></h2>
-        <div class="loader-status"><span id="loadMessage">LINKING POWER UNIT</span><b id="loadPercent">0%</b></div>
-        <div class="loader-rail"><i id="loadFill"></i></div>
-        <p class="loader-note">F1 2022 · 1.6L V6 HYBRID · REAL-TIME 3D</p>
-      </div>
-      <div class="loader-bottom"><span>REAL F1 CHASSIS</span><span>35 SECONDS / ONE TAKE</span><span>HEADPHONES RECOMMENDED</span></div>
-    </div>
-
-    <div class="rotate-hint" aria-hidden="true"><span>↻</span> 为获得更好的体验，请横屏观看</div>
   </div>
+  <div id="fallback" hidden>WebGL2 is required to view the F1-75 showroom.</div>
   <script>/*__INLINE_JS__*/</script>
 </body>
 </html>

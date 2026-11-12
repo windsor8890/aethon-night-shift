@@ -1,213 +1,251 @@
-const q = (id) => document.getElementById(id);
+const MODES = {
+  full: {
+    title: 'FULL<br />ASSEMBLY',
+    kicker: 'CHASSIS 066 / ROSSO CORSA',
+    cn: '整车展示',
+    desc: '2022 赛季 Ferrari F1-75 的真实外形，完整呈现 18 英寸轮组、地面效应底板与 Rosso Corsa 单体壳。',
+    specs: [
+      ['CHASSIS', 'CFRP MONOCOQUE'],
+      ['POWER UNIT', '1.6L V6 TURBO HYBRID'],
+      ['GEARBOX', '8-SPEED'],
+      ['WHEELBASE', '3.60 M'],
+    ],
+    state: 'STATIC SHOWROOM / BAY 01',
+    aside: null,
+  },
+  cutaway: {
+    title: 'CUT<br />AWAY',
+    kicker: 'CUT PLANE / X +0.26 M',
+    cn: '工程剖视',
+    desc: '右舷车身沿纵向剖开，V6 混合动力单元、能量储存、侧箱散热器与座舱结构在碳纤维外壳下逐层显露。',
+    specs: [
+      ['CUT PLANE', 'X +0.26 M'],
+      ['POWER UNIT', '1.6L V6 / 066'],
+      ['ENERGY STORE', '4 MJ'],
+      ['COOLING', '2 RADIATORS'],
+    ],
+    state: 'CUTAWAY / SYSTEMS EXPOSED',
+    aside: {
+      kicker: 'SYSTEMS OVERVIEW',
+      count: '04',
+      foot: 'CUT X +0.26 M / SHOW CAR',
+      rows: [
+        ['01', 'POWER UNIT', 'V6 + MGU-K'],
+        ['02', 'ENERGY STORE', '4 MJ BATTERY'],
+        ['03', 'RADIATOR', 'SIDEPOD CORE'],
+        ['04', 'COCKPIT CELL', 'DRIVER SURVIVAL'],
+      ],
+    },
+  },
+  systems: {
+    title: 'SYSTEMS<br />X-RAY',
+    kicker: 'GHOST SHELL / SYSTEMS LIVE',
+    cn: '系统透视',
+    desc: '车身以半透明幽灵材质呈现，动力总成、储能、冷却回路与座舱骨骼同时可见，用于阅读整车系统关系。',
+    specs: [
+      ['BODY', 'GHOST / 18%'],
+      ['POWER UNIT', '1.6L V6'],
+      ['ENERGY STORE', '4 MJ'],
+      ['MASS', '798 KG'],
+    ],
+    state: 'SYSTEMS / GHOST SHELL',
+    aside: {
+      kicker: 'SYSTEMS OVERVIEW',
+      count: '04',
+      foot: 'GHOST SHELL / SHOW CAR',
+      rows: [
+        ['01', 'POWER UNIT', 'V6 + TURBO'],
+        ['02', 'ENERGY STORE', 'HV BATTERY'],
+        ['03', 'COOLING', 'RADIATOR CORE'],
+        ['04', 'COCKPIT', 'DRIVER CELL'],
+      ],
+    },
+  },
+  detail: {
+    title: 'DETAIL<br />STUDY',
+    kicker: 'FRONT CORNER / 18 INCH',
+    cn: '细节研究',
+    desc: '贴近前翼、轮组、碳陶制动与推杆悬挂，观察 2022 规则下的机械细节与 Rosso Corsa 表面处理。',
+    specs: [
+      ['FRONT WING', '4-ELEMENT'],
+      ['WHEELS', '18 INCH'],
+      ['BRAKES', 'CARBON CERAMIC'],
+      ['SUSPENSION', 'PUSHROD'],
+    ],
+    state: 'DETAIL / FRONT CORNER',
+    aside: {
+      kicker: 'DETAIL STUDY',
+      count: '04',
+      foot: 'FRONT CORNER / CLOSE UP',
+      rows: [
+        ['01', 'FRONT WING', '4-ELEMENT'],
+        ['02', 'WHEEL', '18 INCH'],
+        ['03', 'BRAKE', 'CARBON'],
+        ['04', 'SUSPENSION', 'PUSHROD'],
+      ],
+    },
+  },
+};
 
-export class FilmUI {
-  constructor({ chapters = [], duration = 35, onPlay, onSkip, onReplay, onExplore, onGarage, onSound, onFullscreen } = {}) {
-    this.chapters = chapters;
-    this.duration = duration;
-    this.callbacks = { onPlay, onSkip, onReplay, onExplore, onGarage, onSound, onFullscreen };
-    this.app = q('app');
-    this.loader = q('loader');
-    this.landing = q('landing');
-    this.filmHud = q('filmHud');
-    this.endCard = q('endCard');
-    this.exploreHud = q('exploreHud');
-    this.chapterCard = q('chapterCard');
-    this.cinemaTitle = q('cinemaTitle');
-    this.progressFill = q('progressFill');
-    this.progressHead = q('progressHead');
-    this.progressMarks = q('progressMarks');
-    this.timeEl = q('filmTime');
-    this.speedEl = q('speedValue');
-    this.gearEl = q('gearValue');
-    this.throttleEl = q('throttleFill');
-    this.modeEl = q('telemMode');
-    this.telemetryEl = q('filmTelemetry');
-    this.soundLabel = q('soundLabel');
-    this.soundDot = q('soundDot');
-    this.toastEl = q('toast');
-    this.creditsModal = q('creditsModal');
-    this.fadeBlack = q('fadeBlack');
-    this.flashEl = q('cutFlash');
-    this.chapterTimer = 0;
-    this.toastTimer = 0;
-    this.soundOn = true;
+const PINS = [
+  { key: 'power', n: '01', label: 'POWER UNIT', cn: '动力单元' },
+  { key: 'battery', n: '02', label: 'ENERGY STORE', cn: '储能' },
+  { key: 'radiator', n: '03', label: 'RADIATOR', cn: '散热器' },
+  { key: 'cockpit', n: '04', label: 'COCKPIT', cn: '座舱' },
+];
 
-    this._wire();
-    this._buildMarks();
+export class ShowcaseUI {
+  constructor({ onMode, onReset } = {}) {
+    this.onMode = onMode;
+    this.onReset = onReset;
+    this.mode = 'full';
+    this.$ = (id) => document.getElementById(id);
+    this.modeButtons = [...document.querySelectorAll('.mode-btn')];
+    this.intro = document.querySelector('.intro');
+    this.aside = this.$('asidePanel');
+    this.pinsEl = this.$('pins');
+    this.credits = this.$('creditsModal');
+    this.loader = this.$('loader');
+    this.toastEl = this.$('toast');
+    this.pinEls = new Map();
+    this.buildPins();
+    this.bind();
+    this.setMode('full', false);
   }
 
-  _wire() {
-    q('playBtn').addEventListener('click', () => this.callbacks.onPlay?.());
-    q('freeLookBtn').addEventListener('click', () => this.callbacks.onExplore?.('garage'));
-    q('skipBtn').addEventListener('click', () => this.callbacks.onSkip?.());
-    q('replayBtn').addEventListener('click', () => this.callbacks.onReplay?.());
-    q('exploreBtn').addEventListener('click', () => this.callbacks.onExplore?.('track'));
-    q('garageBtn').addEventListener('click', () => this.callbacks.onGarage?.());
-    q('exploreReplay').addEventListener('click', () => this.callbacks.onReplay?.());
-    q('exploreGarage').addEventListener('click', () => this.callbacks.onGarage?.());
-    q('soundToggle').addEventListener('click', () => this.toggleSound());
-    q('filmSound').addEventListener('click', () => this.toggleSound());
-    q('fullscreenBtn').addEventListener('click', () => this.callbacks.onFullscreen?.());
-    q('creditsBtn').addEventListener('click', () => this.openCredits());
-    q('creditsBtn2').addEventListener('click', () => this.openCredits());
-    q('closeCredits').addEventListener('click', () => this.closeCredits());
-    this.creditsModal.addEventListener('click', (e) => {
-      if (e.target === this.creditsModal) this.closeCredits();
-    });
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        if (this.creditsModal.classList.contains('is-open')) this.closeCredits();
-      }
-    });
-  }
-
-  _buildMarks() {
-    this.progressMarks.innerHTML = '';
-    for (const chapter of this.chapters) {
-      const mark = document.createElement('i');
-      mark.style.left = `${(chapter.at / this.duration) * 100}%`;
-      this.progressMarks.appendChild(mark);
+  buildPins() {
+    for (const data of PINS) {
+      const el = document.createElement('div');
+      el.className = 'pin';
+      el.dataset.pin = data.key;
+      el.title = `${data.label} / ${data.cn}`;
+      el.innerHTML = `<i>${data.n}</i>`;
+      this.pinsEl.appendChild(el);
+      this.pinEls.set(data.key, el);
     }
   }
 
-  setLoading(progress, message) {
-    const pct = Math.max(0, Math.min(1, progress));
-    q('loadFill').style.width = `${(pct * 100).toFixed(1)}%`;
-    q('loadPercent').textContent = `${Math.round(pct * 100)}%`;
-    if (message) q('loadMessage').textContent = message;
+  bind() {
+    this.modeButtons.forEach((btn) => {
+      btn.addEventListener('click', () => this.setMode(btn.dataset.mode));
+    });
+    this.$('resetView').addEventListener('click', () => this.onReset?.());
+    this.$('creditsBtn').addEventListener('click', () => this.openCredits());
+    this.$('creditsClose').addEventListener('click', () => this.closeCredits());
+    this.$('fullscreenBtn').addEventListener('click', () => this.toggleFullscreen());
+    this.credits.addEventListener('click', (e) => {
+      if (e.target === this.credits) this.closeCredits();
+    });
+    window.addEventListener('keydown', (e) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === 'Escape') {
+        if (this.credits.classList.contains('is-open')) this.closeCredits();
+        return;
+      }
+      if (this.credits.classList.contains('is-open')) return;
+      if (e.key === '1') this.setMode('full');
+      if (e.key === '2') this.setMode('cutaway');
+      if (e.key === '3') this.setMode('systems');
+      if (e.key === '4') this.setMode('detail');
+      if (e.key.toLowerCase() === 'r') this.onReset?.();
+      if (e.key.toLowerCase() === 'i') this.openCredits();
+      if (e.key.toLowerCase() === 'f') this.toggleFullscreen();
+    });
+  }
+
+  setProgress(p) {
+    const pct = Math.round(Math.max(0, Math.min(1, p)) * 100);
+    this.$('loaderBar').style.width = `${pct}%`;
+    this.$('loaderPct').textContent = String(pct).padStart(2, '0');
   }
 
   ready() {
-    this.app.classList.remove('is-loading');
-    this.setLoading(1, 'SYSTEMS READY');
+    this.setProgress(1);
+    this.loader.classList.add('is-done');
+    this.intro.classList.add('is-ready');
+    setTimeout(() => { this.loader.style.display = 'none'; }, 1100);
   }
 
-  showLanding() {
-    this.app.classList.remove('is-loading', 'is-cinema', 'is-end', 'is-explore');
-    this.app.classList.add('is-ready');
-    this.filmHud.setAttribute('aria-hidden', 'true');
-    this.endCard.setAttribute('aria-hidden', 'true');
-    this.exploreHud.classList.remove('is-visible');
-    this.exploreHud.setAttribute('aria-hidden', 'true');
-    this.fadeBlack.classList.remove('on');
-    this.chapterCard.classList.remove('is-visible');
-    this.cinemaTitle.classList.remove('is-visible');
-    this.telemetryEl.classList.remove('is-visible');
+  error(message) {
+    this.$('loaderPct').textContent = '--';
+    const meta = this.loader.querySelector('.loader-meta span');
+    if (meta) meta.textContent = `LOAD ERROR / ${message}`;
+    this.showToast('MODEL LOAD FAILED');
   }
 
-  startCinema() {
-    this.app.classList.remove('is-end', 'is-explore');
-    this.app.classList.add('is-cinema');
-    this.filmHud.setAttribute('aria-hidden', 'false');
-    this.endCard.setAttribute('aria-hidden', 'true');
-    this.exploreHud.classList.remove('is-visible');
-    this.fadeBlack.classList.remove('on');
-    this.telemetryEl.classList.remove('is-visible');
-    this.chapterCard.classList.remove('is-visible');
-    this.cinemaTitle.classList.remove('is-visible');
+  setMode(mode, notify = true) {
+    if (!MODES[mode]) return;
+    this.mode = mode;
+    const data = MODES[mode];
+    this.modeButtons.forEach((btn) => btn.classList.toggle('active', btn.dataset.mode === mode));
+    this.$('modeKicker').textContent = data.kicker;
+    this.$('modeTitle').innerHTML = data.title;
+    this.$('modeCn').textContent = data.cn;
+    this.$('modeDesc').textContent = data.desc;
+    this.$('modeState').textContent = data.state;
+    this.renderSpecs(data.specs);
+    this.renderAside(data.aside);
+    this.pinsEl.style.display = (mode === 'cutaway' || mode === 'systems') ? '' : 'none';
+    if (notify) this.onMode?.(mode);
   }
 
-  showIntroTitle(show) {
-    this.cinemaTitle.classList.toggle('is-visible', !!show);
+  renderSpecs(specs) {
+    const grid = this.$('specGrid');
+    grid.innerHTML = specs.map(([label, value]) => `<div><span>${label}</span><b>${value}</b></div>`).join('');
   }
 
-  showChapter(index, { popup = true } = {}) {
-    const c = this.chapters[index] || this.chapters[0];
-    if (!c) return;
-    q('filmChapterNum').textContent = c.id;
-    q('filmChapterName').textContent = c.title;
-    q('filmChapterCn').textContent = c.cn;
-    q('chapterCardNum').textContent = c.id;
-    q('chapterCardTitle').textContent = c.title;
-    q('chapterCardCn').textContent = c.line;
-    q('progressChapter').textContent = `${c.id} / ${c.title}`;
-    if (popup) {
-      this.chapterCard.classList.add('is-visible');
-      clearTimeout(this.chapterTimer);
-      this.chapterTimer = setTimeout(() => this.chapterCard.classList.remove('is-visible'), 2750);
+  renderAside(aside) {
+    if (!aside) {
+      this.aside.setAttribute('aria-hidden', 'true');
+      return;
     }
+    this.aside.setAttribute('aria-hidden', 'false');
+    this.$('asideKicker').textContent = aside.kicker;
+    this.$('asideCount').textContent = aside.count;
+    this.$('asideFoot').textContent = aside.foot;
+    this.$('asideList').innerHTML = aside.rows.map(([n, label, meta]) => (
+      `<li><span class="n">${n}</span><span>${label}</span><em>${meta}</em></li>`
+    )).join('');
   }
 
-  setFilmTime(time) {
-    const t = Math.max(0, Math.min(this.duration, time));
-    this.timeEl.textContent = formatTime(t);
-    const pct = (t / this.duration) * 100;
-    this.progressFill.style.width = `${pct}%`;
-    this.progressHead.style.left = `${pct}%`;
-    q('progressTime').textContent = `${formatTime(t)} — ${formatTime(this.duration)}`;
-  }
-
-  setTelemetry({ speed = 0, gear = 'N', throttle = 0, mode = 'GARAGE / IDLE', visible = false } = {}) {
-    this.speedEl.textContent = String(Math.round(speed)).padStart(3, '0');
-    this.gearEl.textContent = gear;
-    this.throttleEl.style.width = `${Math.max(0, Math.min(1, throttle)) * 100}%`;
-    this.modeEl.textContent = mode;
-    this.telemetryEl.classList.toggle('is-visible', !!visible);
-  }
-
-  cutFlash() {
-    this.flashEl.classList.add('on');
-    setTimeout(() => this.flashEl.classList.remove('on'), 55);
-  }
-
-  fadeOut() {
-    this.fadeBlack.classList.add('on');
-  }
-
-  showEnd() {
-    this.app.classList.remove('is-explore');
-    this.app.classList.add('is-end');
-    this.fadeBlack.classList.add('on');
-    this.endCard.setAttribute('aria-hidden', 'false');
-    this.filmHud.setAttribute('aria-hidden', 'true');
-    this.chapterCard.classList.remove('is-visible');
-    this.telemetryEl.classList.remove('is-visible');
-  }
-
-  showExplore() {
-    this.app.classList.remove('is-cinema', 'is-end');
-    this.app.classList.add('is-explore');
-    this.fadeBlack.classList.remove('on');
-    this.endCard.setAttribute('aria-hidden', 'true');
-    this.filmHud.setAttribute('aria-hidden', 'true');
-    this.exploreHud.classList.add('is-visible');
-    this.exploreHud.setAttribute('aria-hidden', 'false');
-    this.telemetryEl.classList.remove('is-visible');
-  }
-
-  toggleSound(force) {
-    this.soundOn = typeof force === 'boolean' ? force : !this.soundOn;
-    this.soundLabel.textContent = this.soundOn ? 'SOUND ON' : 'MUTED';
-    this.soundDot.classList.toggle('on', this.soundOn);
-    const filmSound = q('filmSound');
-    if (filmSound) {
-      filmSound.textContent = this.soundOn ? 'SOUND ON' : 'MUTED';
-      filmSound.classList.toggle('is-muted', !this.soundOn);
+  updatePins(points, camera) {
+    if (this.mode !== 'cutaway' && this.mode !== 'systems') return;
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    for (const data of PINS) {
+      const el = this.pinEls.get(data.key);
+      const point = points[data.key];
+      if (!el || !point) { if (el) el.classList.remove('is-on'); continue; }
+      const p = point.clone().project(camera);
+      const on = p.z > -1 && p.z < 1 && p.x > -0.94 && p.x < 0.94 && p.y > -0.86 && p.y < 0.9;
+      if (!on) { el.classList.remove('is-on'); continue; }
+      const x = (p.x * 0.5 + 0.5) * w;
+      const y = (-p.y * 0.5 + 0.5) * h;
+      el.style.left = `${x}px`;
+      el.style.top = `${y}px`;
+      el.classList.add('is-on');
     }
-    this.callbacks.onSound?.(this.soundOn);
-    return this.soundOn;
   }
 
   openCredits() {
-    this.creditsModal.classList.add('is-open');
-    this.creditsModal.setAttribute('aria-hidden', 'false');
+    this.credits.classList.add('is-open');
+    this.$('creditsClose').focus({ preventScroll: true });
   }
 
   closeCredits() {
-    this.creditsModal.classList.remove('is-open');
-    this.creditsModal.setAttribute('aria-hidden', 'true');
+    this.credits.classList.remove('is-open');
+    this.$('creditsBtn').focus({ preventScroll: true });
   }
 
-  toast(text, ms = 2200) {
-    this.toastEl.textContent = text;
-    this.toastEl.classList.add('is-visible');
+  toggleFullscreen() {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen?.().catch(() => {});
+    else document.exitFullscreen?.().catch(() => {});
+  }
+
+  showToast(message) {
+    this.toastEl.textContent = message;
+    this.toastEl.classList.add('is-on');
     clearTimeout(this.toastTimer);
-    this.toastTimer = setTimeout(() => this.toastEl.classList.remove('is-visible'), ms);
+    this.toastTimer = setTimeout(() => this.toastEl.classList.remove('is-on'), 2200);
   }
-}
-
-function formatTime(t) {
-  const m = Math.floor(t / 60);
-  const s = Math.floor(t % 60);
-  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }

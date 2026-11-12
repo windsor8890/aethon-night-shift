@@ -73,7 +73,7 @@ export async function loadApp(page, { timeout = 180000 } = {}) {
   });
   await page.goto(APP_URL, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => window.__READY__ === true, null, { timeout });
-  await page.waitForTimeout(900);
+  await page.waitForTimeout(1700);
   return errors;
 }
 
