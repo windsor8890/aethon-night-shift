@@ -159,6 +159,12 @@ export class ShowcaseUI {
     this.$('loaderPct').textContent = String(pct).padStart(2, '0');
   }
 
+  setStage(text) {
+    const meta = this.loader.querySelector('.loader-meta span');
+    if (meta) meta.textContent = text;
+    this.setProgress(0.98);
+  }
+
   ready() {
     this.setProgress(1);
     this.loader.classList.add('is-done');

@@ -21,6 +21,24 @@ try {
   check('loader dismissed', await page.locator('#loader').evaluate((el) => getComputedStyle(el).display === 'none'));
   check('hero heading', (await page.locator('#modeTitle').innerText()).includes('FULL'));
   check('car loaded', await page.evaluate(() => window.__SHOWCASE__.car.wheels.length === 4 && Boolean(window.__SHOWCASE__.car.root)));
+  check('2022 livery applied', await page.evaluate(() => window.__SHOWCASE__.car.liveryMaterials.length >= 20));
+  check('Ferrari shield + number', await page.evaluate(() => {
+    let shield = false;
+    let number = false;
+    window.__SHOWCASE__.car.root.traverse((o) => {
+      if (!o.isMesh) return;
+      if (o.name === 'livery-shield-front' && o.geometry.attributes.position?.count > 0) shield = true;
+      if (o.name === 'livery-number-nose' && o.geometry.attributes.position?.count > 0) number = true;
+    });
+    return shield && number;
+  }));
+  check('Pirelli tyre marks', await page.evaluate(() => {
+    let n = 0;
+    window.__SHOWCASE__.car.root.traverse((o) => {
+      if (o.isMesh && o.material?.name === 'PirelliTyreMark') n += 1;
+    });
+    return n === 4;
+  }));
   check('canvas sized', await page.locator('#stage').evaluate((el) => el.clientWidth > 1000 && el.clientHeight > 600));
   check('desktop has no overflow', await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   check('four modes rendered', await page.locator('.mode-btn').count() === 4);

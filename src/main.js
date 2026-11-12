@@ -103,6 +103,10 @@ async function boot() {
   const car = await loadF175({
     url: './assets/ferrari-f1-75.glb',
     onProgress: (p) => ui.setProgress(0.08 + p * 0.88),
+    onStage: (stage) => {
+      if (stage === 'livery') ui.setStage('APPLYING 2022 F1-75 LIVERY');
+      if (stage === 'assembled') ui.setStage('ASSEMBLY COMPLETE / READY');
+    },
   });
   car.root.position.y += 0.004;
   scene.add(car.root);
@@ -240,6 +244,7 @@ async function boot() {
     scene,
     renderer,
     controls,
+    THREE,
     mode: 'full',
   };
   window.__READY__ = true;

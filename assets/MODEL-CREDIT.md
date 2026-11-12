@@ -12,6 +12,7 @@ The source GLB contains the Ferrari F1-75 exterior geometry. This project has mo
 - rescaled to a 5.6 m vehicle length and re-grounded in the AETHON garage;
 - rebuilt the four wheel assemblies with new tyres, covers, rims, brake discs and Pirelli rings;
 - removed the source's broken all-zero vertex-colour stream and applied a new Rosso Corsa clearcoat finish;
+- reconstructed a fan-interpretation 2022 F1-75 livery from period reference: car 16, Ferrari shield, Shell, Ray-Ban, CEVA, Santander, AWS, Richard Mille, Velas, Snapdragon and Pirelli P Zero marks;
 - added a procedural 1.6 L V6 turbo-hybrid power unit, energy store, radiators, cockpit cell and technical lights;
 - added the AETHON showroom presentation, camera system and UI.
 

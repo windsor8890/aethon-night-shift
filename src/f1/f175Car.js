@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { mergeStaticMeshes } from '../lib/merge.js';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { applyLivery, applyTireLivery } from './livery.js';
 
 const LENGTH = 5.6;
 const WHEELBASE = 3.55;
@@ -37,9 +38,11 @@ function makePaint() {
     ).replace(
       '#include <color_fragment>',
       `#include <color_fragment>
-      if (vF1World.y < 0.17) diffuseColor.rgb = vec3(0.018, 0.019, 0.020);
+      if (vF1World.y < 0.22) diffuseColor.rgb = vec3(0.018, 0.019, 0.020);
       if (vF1World.z < -2.12 && vF1World.y > 0.52) diffuseColor.rgb = vec3(0.026, 0.027, 0.028);
-      if (vF1World.z > 2.18 && vF1World.y < 0.42) diffuseColor.rgb = vec3(0.024, 0.025, 0.026);`,
+      if (vF1World.z > 2.18 && vF1World.y < 0.55) diffuseColor.rgb = vec3(0.024, 0.025, 0.026);
+      if (vF1World.z < -0.05 && vF1World.z > -1.95 && vF1World.y > 0.9 && abs(vF1World.x) < 0.4)
+        diffuseColor.rgb = vec3(0.02, 0.021, 0.022);`,
     );
   };
   mat.customProgramCacheKey = () => 'ferrari-wheel-mask-v1';
@@ -63,6 +66,8 @@ function makeWheel(side, front, mats) {
   group.name = `wheel-${front ? 'front' : 'rear'}-${side > 0 ? 'right' : 'left'}`;
   group.position.set(side * TRACK * 0.5, WHEEL_RADIUS, (front ? 1 : -1) * AXLE_Z);
   group.userData.wheel = true;
+  group.userData.side = side;
+  group.userData.front = front;
   group.userData.base = group.position.clone();
   group.userData.offset = new THREE.Vector3(side * 0.95, 0.05, front ? 0.18 : -0.18);
 
@@ -263,7 +268,7 @@ function makeInternals() {
   return group;
 }
 
-export async function loadF175({ url = '/assets/ferrari-f1-75.glb', onProgress } = {}) {
+export async function loadF175({ url = '/assets/ferrari-f1-75.glb', onProgress, onStage } = {}) {
   const gltf = await new GLTFLoader().loadAsync(url, (e) => {
     if (e.total) onProgress?.(e.loaded / e.total);
   });
@@ -298,8 +303,6 @@ export async function loadF175({ url = '/assets/ferrari-f1-75.glb', onProgress }
   });
   // The mirrored GLB has a broken all-zero COLOR_0 stream; painting is done
   // with the replacement Rosso Corsa material above.
-  mergeStaticMeshes(source, { name: 'f1-75-body' });
-
   const wheelMats = makeWheelMaterials();
   const wheels = [];
   for (const front of [true, false]) {
@@ -310,9 +313,37 @@ export async function loadF175({ url = '/assets/ferrari-f1-75.glb', onProgress }
     }
   }
 
-  // The mirrored GLB has a broken all-zero COLOR_0 stream and no texture.
-  // The car is presented as a Rosso Corsa show car rather than faking a
-  // factory livery that the file does not contain.
+  // The mirrored GLB is split into many overlapping render chunks. Merge
+  // the painted body into one geometry so decals can be projected onto the
+  // complete outer surface and the car renders as a single continuous shell.
+  const bodyParts = [];
+  source.updateMatrixWorld(true);
+  source.traverse((o) => {
+    if (!o.isMesh) return;
+    const src = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry.clone();
+    src.applyMatrix4(o.matrixWorld);
+    const g = new THREE.BufferGeometry();
+    if (src.attributes.position) g.setAttribute('position', src.attributes.position.clone());
+    if (src.attributes.normal) g.setAttribute('normal', src.attributes.normal.clone());
+    if (!g.attributes.normal) g.computeVertexNormals();
+    bodyParts.push(g);
+    src.dispose();
+  });
+  const bodyGeo = mergeGeometries(bodyParts, false);
+  bodyParts.forEach((g) => g.dispose());
+  bodyGeo.computeBoundingBox();
+  bodyGeo.computeBoundingSphere();
+  const bodyMesh = new THREE.Mesh(bodyGeo, paint);
+  bodyMesh.name = 'f1-75-body';
+  bodyMesh.castShadow = true;
+  bodyMesh.receiveShadow = true;
+  carRoot.add(bodyMesh);
+  carRoot.remove(source);
+  onStage?.('livery');
+  const livery = applyLivery(carRoot, bodyMesh);
+  const tyreLivery = applyTireLivery(wheels);
+  onStage?.('assembled');
+
   const internals = makeInternals();
   carRoot.add(internals);
 
@@ -332,7 +363,7 @@ export async function loadF175({ url = '/assets/ferrari-f1-75.glb', onProgress }
     }
   });
   const materialList = [...allMaterials];
-  const bodyMaterials = [paint];
+  const bodyMaterials = [paint, ...livery.materials];
 
   const cutPlane = new THREE.Plane(new THREE.Vector3(-1, 0, 0), 0.26);
   const halfPlane = new THREE.Plane(new THREE.Vector3(-1, 0, 0), 0.0);
@@ -354,39 +385,19 @@ export async function loadF175({ url = '/assets/ferrari-f1-75.glb', onProgress }
     }
   }
 
-  const sourceBase = source.position.clone();
-  const wheelBase = wheels.map((w) => w.position.clone());
-  let explosion = 0;
-  function setExplosion(value) {
-    explosion = THREE.MathUtils.clamp(value, 0, 1);
-    const e = 1 - Math.pow(1 - explosion, 3);
-    source.position.copy(sourceBase).add(new THREE.Vector3(0, 1.08 * e, 0));
-    internals.position.set(0, 0.16 * e, -0.2 * e);
-    wheels.forEach((w, i) => {
-      const off = new THREE.Vector3(
-        Math.sign(wheelBase[i].x) * 0.92 * e,
-        0.06 * e,
-        (wheelBase[i].z > 0 ? 1 : -1) * 0.2 * e,
-      );
-      w.position.copy(wheelBase[i]).add(off);
-    });
-    return explosion;
-  }
-
   const bbox = new THREE.Box3().setFromObject(carRoot);
   return {
     root: carRoot,
-    source,
+    bodyMesh,
     internals,
     bodyMaterial: paint,
+    liveryMaterials: livery.materials,
     wheelMaterials: wheelMats,
     wheels,
     allMaterials: materialList,
     bodyMaterials,
     setClipping,
     setGhost,
-    setExplosion,
-    get explosion() { return explosion; },
     bbox,
     scale: s,
     wheelRadius: WHEEL_RADIUS,
